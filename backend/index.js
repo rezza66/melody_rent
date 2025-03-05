@@ -2,12 +2,16 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import { connectDB } from "./config/database.js";
+import passport from "passport";
+import path from "path";
+import authRoute from "./routes/authRoute.js"
 import userRoute from "./routes/userRoutes.js";
 import instrumentRoute from "./routes/instrumentRoutes.js";
 import loanRoute from "./routes/loanRoutes.js";
 import returnRoute from "./routes/returnRoutes.js";
 import fineRoute from "./routes/fineRoutes.js";
 import paymentRoute from "./routes/paymentRoutes.js";
+import configurePassport from "./config/passport.js";
 
 dotenv.config();
 
@@ -19,6 +23,12 @@ app.use(express.json());
 
 connectDB(); 
 
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
+configurePassport();
+app.use(passport.initialize());
+
+app.use("/auth", authRoute);
 app.use("/api/users", userRoute);
 app.use("/api/instruments", instrumentRoute);
 app.use("/api/loans", loanRoute);
