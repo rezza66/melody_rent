@@ -1,72 +1,139 @@
-import React, { useState } from 'react';
-import { Search } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchInstruments } from "../redux/instrumentSlice";
+import { Category, fetchCategories } from "../api/categoryApi";
+import { RootState, AppDispatch } from "../redux/store";
+import { BASE_URL } from "../utils/config";
+import {format} from 'date-fns';
+import { createLoan, fetchUserLoans, LoanRequest } from "../api/loanApi";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
-type Instrument = {
-  _id?: string;
-  name: string;
-  type: string;
-  brand?: string;
-  stock: number;
-  pricePerDay: number;
-  description?: string;
-  image?: string;
-  condition: "new" | "good" | "fair" | "damaged";
-  available: boolean;
-  createdAt: Date;
+const Homepage = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { instruments, loading, error } = useSelector(
+    (state: RootState) => state.instrument
+  );
+  const { user } = useSelector((state: RootState) => state.auth);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [selectedInstrumentId, setSelectedInstrumentId] = useState<
+    string | null
+  >(null);
+
+  useEffect(() => {
+    const getCategories = async () => {
+      const data = await fetchCategories();
+      setCategories(data);
+    };
+    getCategories();
+  }, []);
+
+  useEffect(() => {
+    dispatch(fetchInstruments());
+  }, [dispatch]);
+
+
+
+  const handleRent = (instrumentId: string) => {
+    setSelectedInstrumentId(instrumentId);
+    setShowModal(true);
+  };
+
+
+const confirmRent = async () => {
+  if (!user || !user.id) {
+    alert("User tidak ditemukan. Silakan login terlebih dahulu.");
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    // ✅ 1. Ambil daftar peminjaman langsung dari API
+    const response = await fetchUserLoans(user.id);
+    
+    // ✅ 2. Pastikan response valid
+    if (!response || !Array.isArray(response)) {
+      throw new Error("Data peminjaman tidak valid atau gagal diambil.");
+    }
+
+    const myLoans = response;
+    const activeLoans = myLoans.filter((loan: { status: string }) => loan.status === "ongoing").length;
+
+    // ❌ 3. Jika sudah ada 2 alat yang dipinjam dan belum dikembalikan, tolak peminjaman
+    if (activeLoans >= 2) {
+      alert("Kamu sudah mencapai batas peminjaman (maksimal 2 alat musik). Kembalikan alat terlebih dahulu.");
+      setIsLoading(false);
+      return;
+    }
+
+    // ✅ 4. Validasi tanggal sebelum request
+    if (!startDate || !endDate) {
+      alert("Tanggal mulai dan selesai harus diisi.");
+      setIsLoading(false);
+      return;
+    }
+    if (startDate >= endDate) {
+      alert("Tanggal mulai harus lebih awal dari tanggal selesai.");
+      setIsLoading(false);
+      return;
+    }
+
+    console.log("✅ Semua validasi berhasil, memproses peminjaman...");
+
+    // ✅ 5. Kirim data peminjaman ke backend
+    const loanData: LoanRequest = {
+      user: user.id,
+      instruments: [
+        {
+          instrumentId: selectedInstrumentId!,
+          quantity: 1,
+          startDate: format(startDate!, "yyyy-MM-dd"),
+          endDate: format(endDate!, "yyyy-MM-dd"),
+        },
+      ],
+    };
+
+    await createLoan(loanData);
+    alert("Peminjaman berhasil!");
+
+  } catch (error: any) {
+    console.error("❌ Error creating loan:", error);
+
+    // Jika error berasal dari backend (misalnya status 400)
+    if (error.response?.status === 400) {
+      alert("Peminjaman gagal! Pastikan kamu tidak melebihi batas peminjaman.");
+    } else {
+      alert("Terjadi kesalahan. Silakan coba lagi.");
+    }
+
+  } finally {
+    setIsLoading(false);
+    setShowModal(false);
+    setStartDate(null);
+    setEndDate(null);
+  }
 };
 
-const instrumentData: Instrument[] = [
-  {
-    _id: "1",
-    name: 'Gitar Elektrik Yamaha Pacifica',
-    type: 'gitar',
-    brand: 'Yamaha',
-    stock: 5,
-    pricePerDay: 75000,
-    description: 'Gitar elektrik berkualitas tinggi dengan pickup premium, cocok untuk berbagai genre musik.',
-    image: '/api/placeholder/300/200',
-    condition: 'good',
-    available: true,
-    createdAt: new Date()
-  },
-  {
-    _id: "2",
-    name: 'Drum Elektronik Roland TD-17',
-    type: 'drum',
-    brand: 'Roland',
-    stock: 3,
-    pricePerDay: 250000,
-    description: 'Drum elektronik dengan modul canggih, suara realistis, dan fitur pelatihan built-in.',
-    image: '/api/placeholder/300/200',
-    condition: 'new',
-    available: true,
-    createdAt: new Date()
-  },
-  {
-    _id: "3",
-    name: 'Keyboard Casio',
-    type: 'keyboard',
-    brand: 'Casio',
-    stock: 2,
-    pricePerDay: 100000,
-    description: 'Keyboard arranger profesional dengan ribuan style dan fitur komposisi musik.',
-    image: '/api/placeholder/300/200',
-    condition: 'good',
-    available: false,
-    createdAt: new Date()
-  }
-];
+  const filteredInstruments = instruments.filter((instrument) => {
+    const matchesSearch = instrument.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
 
-const Homepage: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedType, setSelectedType] = useState('Semua');
+    const matchesCategory =
+      !selectedCategory ||
+      (typeof instrument.category === "string"
+        ? instrument.category === selectedCategory
+        : instrument.category._id === selectedCategory);
 
-  const instrumentTypes = ['Semua', 'gitar', 'drum', 'keyboard'];
-
-  const filteredInstruments = instrumentData.filter(instrument => 
-    (searchTerm === '' || instrument.name.toLowerCase().includes(searchTerm.toLowerCase())) &&
-    (selectedType === 'Semua' || instrument.type === selectedType)
-  );
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="min-h-screen bg-gray-100 mt-16 p-6">
@@ -80,98 +147,130 @@ const Homepage: React.FC = () => {
           </p>
         </header>
 
-        <div className="bg-white shadow-md rounded-lg p-6 mb-8">
-          <div className="flex items-center mb-4">
-            <Search className="text-gray-400 mr-2" />
-            <input 
-              type="text" 
-              placeholder="Cari instrumen..." 
-              className="w-full p-2 border rounded"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+        <div className="mb-6 flex justify-center gap-4">
+          <input
+            type="text"
+            placeholder="Cari alat musik..."
+            className="p-2 border rounded"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
 
-          <div className="flex justify-center space-x-4 mb-4">
-            {instrumentTypes.map(type => (
-              <button
-                key={type}
-                className={`px-4 py-2 rounded ${
-                  selectedType === type 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 text-gray-700'
-                }`}
-                onClick={() => setSelectedType(type)}
-              >
-                {type === 'Semua' ? 'Semua Tipe' : type.charAt(0).toUpperCase() + type.slice(1)}
-              </button>
+          <select
+            className="p-2 border rounded"
+            onChange={(e) => setSelectedCategory(e.target.value || null)}
+            value={selectedCategory || ""}
+          >
+            <option value="">Semua Kategori</option>
+            {categories.map((category) => (
+              <option key={category._id} value={category._id}>
+                {category.name}
+              </option>
             ))}
-          </div>
+          </select>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {filteredInstruments.map(instrument => (
-            <div 
-              key={instrument._id} 
-              className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col"
-            >
-              <img 
-                src={instrument.image} 
-                alt={instrument.name} 
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-4 flex-grow flex flex-col">
-                <h2 className="text-xl font-semibold mb-2">
-                  {instrument.name}
-                </h2>
-                <p className="text-gray-600 mb-2 flex-grow">
-                  {instrument.description}
-                </p>
-                <div className="mb-2">
-                  <span className="text-gray-600">
-                    Tipe: {instrument.type.charAt(0).toUpperCase() + instrument.type.slice(1)}
+        {loading ? (
+          <p className="text-center text-gray-600">Memuat data...</p>
+        ) : error ? (
+          <p className="text-center text-red-600">Terjadi kesalahan: {error}</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-4 py-6">
+            {filteredInstruments.map((instrument) => (
+              <div
+                key={instrument._id}
+                className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col transform transition duration-300 hover:scale-105 hover:shadow-xl border border-gray-100"
+              >
+                <div className="relative">
+                  <img
+                    src={`${BASE_URL}/${instrument.image}`}
+                    alt={instrument.name}
+                    className="w-full h-80 object-cover"
+                  />
+                  <span
+                    className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${
+                      instrument.available && instrument.stock > 0
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    {instrument.available && instrument.stock > 0
+                      ? `Tersedia (${instrument.stock} unit)`
+                      : "Tidak Tersedia"}
                   </span>
                 </div>
-                <div className="mb-2">
-                  <span className="text-gray-600">
-                    Kondisi: {instrument.condition.charAt(0).toUpperCase() + instrument.condition.slice(1)}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-blue-600 font-bold">
-                    Rp {instrument.pricePerDay.toLocaleString()}/hari
-                  </span>
-                  <div>
-                    <span 
-                      className={`px-3 py-1 rounded-full text-sm ${
+                <div className="p-6 flex-grow flex flex-col">
+                  <h2 className="text-2xl font-bold mb-3 text-gray-800">
+                    {instrument.name}
+                  </h2>
+                  <p className="text-gray-600 mb-4 flex-grow text-sm leading-relaxed">
+                    {instrument.description}
+                  </p>
+                  <div className="border-t border-gray-100 pt-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="text-blue-700 font-bold text-xl">
+                        Rp {instrument.pricePerDay.toLocaleString()}/hari
+                      </span>
+                    </div>
+                    <button
+                      disabled={
+                        !instrument.available ||
+                        instrument.stock === 0 ||
+                        isLoading
+                      }
+                      onClick={() => handleRent(instrument._id)}
+                      className={`w-full py-3 rounded-lg font-medium transition duration-200 ${
                         instrument.available && instrument.stock > 0
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
+                          ? "bg-blue-600 text-white hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 focus:outline-none"
+                          : "bg-gray-200 text-gray-400 cursor-not-allowed"
                       }`}
                     >
-                      {instrument.available && instrument.stock > 0 
-                        ? `Tersedia (${instrument.stock} unit)` 
-                        : 'Tidak Tersedia'}
-                    </span>
+                      {isLoading ? "Memproses..." : "Sewa Sekarang"}
+                    </button>
                   </div>
                 </div>
-                <button 
-                  disabled={!instrument.available || instrument.stock === 0}
-                  className={`w-full mt-4 py-2 rounded ${
-                    instrument.available && instrument.stock > 0
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
-                >
-                  {instrument.available && instrument.stock > 0 
-                    ? 'Sewa Sekarang' 
-                    : 'Tidak Dapat Disewa'}
-                </button>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
+
+      {/* Modal untuk Date Picker */}
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg p-6 w-11/12 md:w-1/3">
+            <h2 className="text-xl font-bold mb-4">Pilih Tanggal Sewa</h2>
+            <div className="mb-4">
+              <DatePicker
+                selected={startDate}
+                onChange={(date) => setStartDate(date)}
+                placeholderText="Pilih tanggal mulai"
+                className="p-2 border rounded mr-4"
+              />
+              <DatePicker
+                selected={endDate}
+                onChange={(date) => setEndDate(date)}
+                placeholderText="Pilih tanggal selesai"
+                className="p-2 border rounded"
+              />
+            </div>
+            <div className="flex justify-end">
+              <button
+                onClick={confirmRent}
+                className="bg-blue-600 text-white p-2 rounded mr-2"
+              >
+                Konfirmasi Sewa
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="bg-gray-300 text-gray-700 p-2 rounded"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -21,6 +21,21 @@ export const getUserById = async (req, res) => {
   }
 };
 
+export const getUserProfile = async (req, res) => {
+  try {
+      const id = req.user.id;
+      const user = await User.findById(id).select("-password"); 
+
+      if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+
+      res.status(200).json(user);
+  } catch (error) {
+      res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 // CREATE a new user
 export const createUser = async (req, res) => {
   const { name, email, phone, address, role } = req.body;
@@ -36,13 +51,26 @@ export const createUser = async (req, res) => {
 // UPDATE a user
 export const updateUser = async (req, res) => {
   try {
-    const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
+    const updateData = { ...req.body };
+
+    // Cek apakah ada file yang diunggah
+    if (req.file) {
+      updateData.image = req.file.path.replace("\\", "/"); // Gunakan path gambar baru
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(req.params.id, updateData, { new: true });
+
     if (!updatedUser) return res.status(404).json({ message: "User not found" });
+
+    console.log("Updated User:", updatedUser);
     res.json(updatedUser);
   } catch (error) {
+    console.error("Error updating user:", error);
     res.status(400).json({ message: error.message });
   }
 };
+
 
 // DELETE a user
 export const deleteUser = async (req, res) => {

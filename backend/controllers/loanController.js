@@ -11,6 +11,44 @@ export const getLoans = async (req, res) => {
   }
 };
 
+export const getUserLoans = async (req, res) => {
+  try {
+    const loans = await Loan.find({ user: req.user._id })
+      .populate("user", "name email") 
+      .populate({
+        path: "instrument",
+        select: "_id name category", 
+        populate: {
+          path: "category", 
+          select: "name", 
+        },
+      });
+
+    res.json(loans);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getUserLoanStatus = async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID diperlukan." });
+    }
+
+    // Ambil semua peminjaman user
+    const userLoans = await Loan.find({ user: userId }).select("status");
+
+    res.status(200).json(userLoans);
+  } catch (error) {
+    console.error("Error fetching user loan status:", error);
+    res.status(500).json({ message: "Terjadi kesalahan pada server." });
+  }
+};
+
+
 // GET a single loan
 export const getLoanById = async (req, res) => {
   try {
@@ -24,43 +62,95 @@ export const getLoanById = async (req, res) => {
 
 // CREATE a new loan
 export const createLoan = async (req, res) => {
-  const { user, instrument, quantity, startDate, endDate, status } = req.body;
-  
   try {
-    if (quantity < 1) {
-      return res.status(400).json({ message: "Quantity must be at least 1" });
+    const { user, instruments } = req.body;
+
+    if (!user || !instruments || !Array.isArray(instruments) || instruments.length === 0) {
+      return res.status(400).json({ message: "User and at least one instrument are required." });
     }
 
-    const instrumentData = await Instrument.findById(instrument);
-    if (!instrumentData) {
-      return res.status(404).json({ message: "Instrument not found" });
+    // Batasi peminjaman maksimal 2 alat
+    const userLoanCount = await Loan.countDocuments({ user, status: "ongoing" });
+    if (userLoanCount + instruments.length > 2) {
+      return res.status(400).json({ message: "Kamu hanya bisa meminjam maksimal 2 alat musik." });
     }
 
-    if (!instrumentData.available || instrumentData.stock < quantity) {
-      return res.status(400).json({ message: "Instrument is not available or insufficient stock" });
+    let newLoans = [];
+
+    for (const item of instruments) {
+      const { instrumentId, quantity, startDate, endDate } = item;
+
+      if (!instrumentId || quantity < 1 || !startDate || !endDate) {
+        return res.status(400).json({ message: "Instrument ID, quantity, startDate, and endDate must be provided." });
+      }
+
+      const instrumentData = await Instrument.findById(instrumentId);
+      if (!instrumentData) {
+        return res.status(404).json({ message: `Instrument ${instrumentId} not found.` });
+      }
+
+      if (instrumentData.stock < quantity) {
+        return res.status(400).json({ message: `Not enough stock available for ${instrumentData.name}.` });
+      }
+
+      // Hitung lama peminjaman per alat
+      const rentalDays = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24));
+
+      if (rentalDays <= 0) {
+        return res.status(400).json({ message: "End date must be after start date." });
+      }
+
+      // Hitung total biaya sewa per alat
+      const totalRentalFee = rentalDays * instrumentData.pricePerDay * quantity;
+
+      // Simpan peminjaman ke database
+      const newLoan = new Loan({
+        user,
+        instrument: instrumentId,
+        quantity,
+        startDate,
+        endDate,
+        totalRentalFee,
+        status: "ongoing",
+      });
+
+      await newLoan.save();
+      newLoans.push(newLoan);
+
+      // Update stok alat musik
+      instrumentData.stock -= quantity;
+      instrumentData.available = instrumentData.stock > 0;
+      await instrumentData.save();
     }
 
-    const newLoan = new Loan({ user, instrument, quantity, startDate, endDate, status });
-    await newLoan.save();
-
-    // Kurangi stok alat musik
-    instrumentData.stock -= quantity;
-    if (instrumentData.stock === 0) {
-      instrumentData.available = false;
-    }
-    await instrumentData.save();
-
-    // Tambahkan logika untuk menangani error spesifik
-    if (!newLoan) {
-      return res.status(500).json({ message: "Failed to create loan" });
-    }
-
-    res.status(201).json(newLoan);
+    res.status(201).json({ message: "Peminjaman berhasil!", loans: newLoans });
   } catch (error) {
     console.error("Error creating loan:", error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Something went wrong", error: error.message });
   }
 };
+
+
+
+
+export const getUserLoanCount = async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID diperlukan." });
+    }
+
+    const loanCount = await Loan.countDocuments({ user: userId });
+
+    res.status(200).json({ count: loanCount });
+  } catch (error) {
+    console.error("Error fetching loan count:", error);
+    res.status(500).json({ message: "Terjadi kesalahan pada server." });
+  }
+};
+
+
 
 
 // UPDATE a loan

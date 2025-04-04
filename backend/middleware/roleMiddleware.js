@@ -1,45 +1,47 @@
-import { defineAbilitiesFor } from '../config/casl.js';
+import { defineAbilitiesFor } from "../config/casl.js";
 
 const authorize = (action, subject) => {
   return (req, res, next) => {
     if (!req.user || !req.user.role) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
     const ability = defineAbilitiesFor(req.user);
 
     // Admin bisa mengakses semua data tanpa batasan
-    if (req.user.role === 'admin') {
+    if (req.user.role === "admin") {
       return next();
     }
 
-    // Cek akses spesifik berdasarkan aturan CASL
-    if (subject === 'user') {
-      // Hanya bisa membaca atau mengupdate dirinya sendiri
-      if (action === 'read' || action === 'update') {
-        if (req.params.id && req.user.id !== req.params.id) {
-          return res.status(403).json({ message: 'Forbidden: You can only manage your own account' });
-        }
-      }
+    if (action === "read" && subject === "user" && req.path === "/") {
+      return res.status(403).json({ message: "Forbidden: You can only read your own data" });
+    }
 
-      // Tidak boleh menghapus user
-      if (action === 'delete') {
-        return res.status(403).json({ message: 'Forbidden: Only admin can delete users' });
+    // Jika akses adalah `GET /loans`, hanya admin yang diperbolehkan
+    if (action === "read" && subject === "loan" && req.path === "/") {
+      return res.status(403).json({ message: "Forbidden: Only admin can access all loans" });
+    }
+
+    // Jika akses adalah `GET /my-loans`, user hanya bisa melihat loan miliknya
+    if (action === "read" && subject === "loan" && req.path === "/my-loans") {
+      req.query.userId = req.user.id; // Tambahkan filter untuk hanya mengambil loan miliknya
+    }
+
+    // Jika akses adalah `GET /loans/:id`, user hanya bisa melihat loan miliknya sendiri
+    if (action === "read" && subject === "loan" && req.params.id) {
+      if (req.user.role !== "admin" && req.body.userId !== req.user.id) {
+        return res.status(403).json({ message: "Forbidden: You can only view your own loan" });
       }
     }
 
-    if (subject === 'loan' || subject === 'return' || subject === 'fine') {
-      // Hanya bisa mengelola miliknya sendiri
-      if (req.user.id !== req.body.userId && req.user.id !== req.params.id) {
+    // Pengecekan khusus untuk loan, return, dan fine (hanya bisa kelola milik sendiri)
+    if (["loan", "return", "fine"].includes(subject)) {
+      if (req.body.userId && req.body.userId !== req.user.id) {
         return res.status(403).json({ message: `Forbidden: You can only manage your own ${subject}` });
       }
     }
 
-    if (ability.can(action, subject)) {
-      return next();
-    } else {
-      return res.status(403).json({ message: 'Forbidden' });
-    }
+    next();
   };
 };
 

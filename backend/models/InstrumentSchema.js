@@ -10,6 +10,11 @@ const instrumentSchema = new mongoose.Schema({
   image: { type: String },
   condition: { type: String, enum: ["new", "good", "fair", "damaged"], default: "good" }, // Kondisi alat musik
   available: { type: Boolean, default: true }, // Ketersediaan alat musik
+  category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: true,
+    },
   createdAt: { type: Date, default: Date.now }, // Tanggal alat musik ditambahkan
 });
 
