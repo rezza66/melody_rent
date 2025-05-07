@@ -14,6 +14,8 @@ import RoleBasedRoute from "./components/RoleBaseRoute";
 import AccessDenied from "./components/AccessDenied";
 import InstrumentList from "./pages/Admin/Instrument";
 import EditInstrument from "./pages/Admin/EditInstrument";
+import UserList from "./pages/Admin/UserList";
+import LoanTable from "./pages/Admin/Loans";
 
 const App = () => {
   return (
@@ -54,6 +56,16 @@ const App = () => {
           <Route path='/edit-instrument/:id' element={
             <RoleBasedRoute allowedRoles={['admin']}>
               <EditInstrument />
+            </RoleBasedRoute>
+          } />
+          <Route path='/user-list' element={
+            <RoleBasedRoute allowedRoles={['admin']}>
+              <UserList />
+            </RoleBasedRoute>
+          } />
+          <Route path='/loan-table' element={
+            <RoleBasedRoute allowedRoles={['admin']}>
+              <LoanTable />
             </RoleBasedRoute>
           } />
           <Route path="/access-denied" element={<AccessDenied />}/>

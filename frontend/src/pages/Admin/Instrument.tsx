@@ -16,7 +16,7 @@ const InstrumentList: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [activeMenu, setActiveMenu] = useState<string>("Instruments");
+  const [activeMenu, setActiveMenu] = useState<string>("AlatMusik");
 
   useEffect(() => {
     dispatch(fetchInstruments());

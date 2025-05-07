@@ -27,18 +27,18 @@ const Sidebar: React.FC<SidebarProps> = ({ activeMenu, onMenuChange }) => {
     },
     { 
       icon: Music, 
-      label: 'Alat Musik', 
+      label: 'AlatMusik', 
       route: '/instrument-list' 
     },
     { 
       icon: Users, 
       label: 'Pengguna', 
-      route: '/pengguna' 
+      route: '/user-list' 
     },
     { 
       icon: Calendar, 
       label: 'Peminjaman', 
-      route: '/peminjaman' 
+      route: '/loan-table' 
     },
     { 
       icon: Settings, 

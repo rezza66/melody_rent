@@ -1,4 +1,11 @@
 import User from "../models/UserModel.js";
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 // GET all users
 export const getUsers = async (req, res) => {
@@ -75,10 +82,23 @@ export const updateUser = async (req, res) => {
 // DELETE a user
 export const deleteUser = async (req, res) => {
   try {
-    const deletedUser = await User.findByIdAndDelete(req.params.id);
-    if (!deletedUser) return res.status(404).json({ message: "User not found" });
-    res.json({ message: "User deleted successfully" });
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.image) {
+      const imagePath = path.join(__dirname, "..", user.image);
+      fs.unlink(imagePath, () => {}); // Abaikan semua hasil
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+    return res.status(200).json({ message: "User deleted successfully" });
+    
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ 
+      message: "Failed to delete user",
+      ...(process.env.NODE_ENV === 'development' && { detail: error.message })
+    });
   }
 };

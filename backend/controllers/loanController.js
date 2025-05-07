@@ -4,12 +4,36 @@ import Instrument from "../models/InstrumentSchema.js";
 // GET all loans
 export const getLoans = async (req, res) => {
   try {
-    const loans = await Loan.find().populate("user").populate("instrument");
-    res.json(loans);
+    // Get pagination parameters from query
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Query with pagination and populate
+    const loans = await Loan.find()
+      .populate("user")
+      .populate("instrument")
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    // Count total documents for pagination
+    const total = await Loan.countDocuments();
+
+    res.json({
+      data: loans,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        itemsPerPage: limit
+      }
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error?.message || 'Server error' });
   }
 };
+
 
 export const getUserLoans = async (req, res) => {
   try {
