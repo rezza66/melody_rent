@@ -136,13 +136,13 @@ const confirmRent = async () => {
   });
 
   return (
-    <div className="min-h-screen bg-gray-100 mt-16 p-6">
+    <div className="min-h-screen bg-[#497D74] mt-16 p-6">
       <div className="container mx-auto">
         <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-blue-600 mb-4">
+          <h1 className="text-4xl font-bold text-white mb-4">
             Rental Alat Musik
           </h1>
-          <p className="text-gray-600">
+          <p className="text-white">
             Sewa alat musik berkualitas dengan mudah dan terjangkau
           </p>
         </header>
@@ -157,7 +157,7 @@ const confirmRent = async () => {
           />
 
           <select
-            className="p-2 border rounded"
+            className="p-2  border rounded"
             onChange={(e) => setSelectedCategory(e.target.value || null)}
             value={selectedCategory || ""}
           >
@@ -179,7 +179,7 @@ const confirmRent = async () => {
             {filteredInstruments.map((instrument) => (
               <div
                 key={instrument._id}
-                className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col transform transition duration-300 hover:scale-105 hover:shadow-xl border border-gray-100"
+                className="bg-[#EFE9D5] rounded-xl shadow-lg overflow-hidden flex flex-col transform transition duration-300 hover:scale-105 hover:shadow-xl border border-gray-100"
               >
                 <div className="relative">
                   <img

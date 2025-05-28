@@ -33,11 +33,11 @@ const Navbar: React.FC = () => {
   ];
 
   return (
-    <nav className="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
+    <nav className="bg-[#27445D] shadow-md fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         {/* Logo */}
         <div className="flex items-center">
-          <span className="text-2xl font-bold text-blue-600">RentMusik</span>
+          <span className="text-2xl font-bold text-white">RentMusik</span>
         </div>
 
         {/* Desktop Menu */}
@@ -47,7 +47,7 @@ const Navbar: React.FC = () => {
               key={item.label}
               to={item.href}
               className={({ isActive }) =>
-                `text-gray-700 hover:text-blue-600 transition duration-300 ${
+                `text-white hover:text-blue-600 transition duration-300 ${
                   isActive ? "font-bold text-blue-600" : ""
                 }`
               }
@@ -63,7 +63,7 @@ const Navbar: React.FC = () => {
                 className="flex items-center space-x-2 cursor-pointer"
                 onClick={handleDropdownClick}
               >
-                <span className="text-gray-700 font-semibold hover:text-blue-600 transition">
+                <span className="text-white font-semibold hover:text-blue-600 transition">
                   {user?.name}
                 </span>
                 <ChevronDown size={16} />
