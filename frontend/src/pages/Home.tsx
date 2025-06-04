@@ -55,10 +55,8 @@ const confirmRent = async () => {
   setIsLoading(true);
 
   try {
-    // ✅ 1. Ambil daftar peminjaman langsung dari API
     const response = await fetchUserLoans(user.id);
     
-    // ✅ 2. Pastikan response valid
     if (!response || !Array.isArray(response)) {
       throw new Error("Data peminjaman tidak valid atau gagal diambil.");
     }
@@ -66,14 +64,12 @@ const confirmRent = async () => {
     const myLoans = response;
     const activeLoans = myLoans.filter((loan: { status: string }) => loan.status === "ongoing").length;
 
-    // ❌ 3. Jika sudah ada 2 alat yang dipinjam dan belum dikembalikan, tolak peminjaman
     if (activeLoans >= 2) {
       alert("Kamu sudah mencapai batas peminjaman (maksimal 2 alat musik). Kembalikan alat terlebih dahulu.");
       setIsLoading(false);
       return;
     }
 
-    // ✅ 4. Validasi tanggal sebelum request
     if (!startDate || !endDate) {
       alert("Tanggal mulai dan selesai harus diisi.");
       setIsLoading(false);
@@ -85,9 +81,6 @@ const confirmRent = async () => {
       return;
     }
 
-    console.log("✅ Semua validasi berhasil, memproses peminjaman...");
-
-    // ✅ 5. Kirim data peminjaman ke backend
     const loanData: LoanRequest = {
       user: user.id,
       instruments: [
@@ -104,9 +97,7 @@ const confirmRent = async () => {
     alert("Peminjaman berhasil!");
 
   } catch (error: any) {
-    console.error("❌ Error creating loan:", error);
 
-    // Jika error berasal dari backend (misalnya status 400)
     if (error.response?.status === 400) {
       alert("Peminjaman gagal! Pastikan kamu tidak melebihi batas peminjaman.");
     } else {
