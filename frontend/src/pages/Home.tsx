@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchInstruments } from "../redux/instrumentSlice";
 import { Category, fetchCategories } from "../api/categoryApi";
 import { RootState, AppDispatch } from "../redux/store";
-import { BASE_URL } from "../utils/config";
+import { IMAGE_BASE_URL } from "../utils/config";
 import {format} from 'date-fns';
 import { createLoan, fetchUserLoans, LoanRequest } from "../api/loanApi";
 import DatePicker from "react-datepicker";
@@ -183,7 +183,7 @@ const confirmRent = async () => {
               >
                 <div className="relative">
                   <img
-                    src={`${BASE_URL}/${instrument.image}`}
+                    src={`${IMAGE_BASE_URL}/${instrument.image}`}
                     alt={instrument.name}
                     className="w-full h-80 object-cover"
                   />

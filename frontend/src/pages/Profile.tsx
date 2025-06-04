@@ -2,7 +2,7 @@ import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store';
 import { getUser, updateUserProfile } from '../redux/userSlice';
-import { BASE_URL } from '../utils/config';
+import { IMAGE_BASE_URL } from '../utils/config';
 
 interface FormData {
   name: string;
@@ -44,7 +44,7 @@ const ProfilePage: React.FC = () => {
         image: user.image || '',
       });
 
-      setPreviewImage(user.image ? `${BASE_URL}/${user.image}` : '/default-avatar.png');
+      setPreviewImage(user.image ? `${IMAGE_BASE_URL}/${user.image}` : '/default-avatar.png');
     }
   }, [user]);
 

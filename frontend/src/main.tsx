@@ -7,7 +7,7 @@ import App from "./App.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>
-    <BrowserRouter>
+    <BrowserRouter basename="/melody-frontend">
       <App />
     </BrowserRouter>
   </Provider>
