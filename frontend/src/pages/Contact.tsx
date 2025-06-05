@@ -99,7 +99,7 @@ const ContactPage: React.FC = () => {
               <Mail className="text-blue-600" size={30} />
               <div>
                 <h3 className="font-semibold">Email</h3>
-                <p className="text-gray-600">info@rentmusik.com</p>
+                <p className="text-gray-600">rezap9303@gmail.com</p>
               </div>
             </div>
           </div>
