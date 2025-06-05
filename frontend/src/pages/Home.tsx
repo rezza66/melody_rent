@@ -134,7 +134,7 @@ const confirmRent = async () => {
             Rental Alat Musik
           </h1>
           <p className="text-white">
-            Sewa alat musik berkualitas dengan mudah dan terjangkau
+            Nikmati kemudahan sewa alat musik berkualitas dengan harga bersahabat
           </p>
         </header>
 
