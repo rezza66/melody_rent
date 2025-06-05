@@ -164,7 +164,7 @@ const confirmRent = async () => {
         {loading ? (
           <p className="text-center text-gray-600">Memuat data...</p>
         ) : error ? (
-          <p className="text-center text-red-600">Terjadi kesalahan: {error}</p>
+          <p className="text-center text-red-500">Terjadi kesalahan: {error}</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-4 py-6">
             {filteredInstruments.map((instrument) => (
