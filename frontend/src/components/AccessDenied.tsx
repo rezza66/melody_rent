@@ -9,7 +9,7 @@ const AccessDenied: React.FC = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="text-center">
-        <XCircle className="mx-auto text-red-500 w-24 h-24 mb-4" />
+        <XCircle className="mx-auto text-red-600 w-24 h-24 mb-4" />
         <h1 className="text-4xl font-bold text-gray-800 mb-2">Akses Ditolak</h1>
         <p className="text-xl text-gray-600 mb-8">
           Maaf, Anda tidak memiliki izin untuk mengakses halaman ini.
