@@ -21,6 +21,8 @@ jobs:
             cd ~/apps/melody_rent
 
             echo "🔁 Pulling latest code..."
+            git reset --hard HEAD
+            git clean -fd
             git pull origin master
 
             echo "📦 Installing backend dependencies..."
@@ -34,5 +36,9 @@ jobs:
             cd ../frontend
             npm install
             npm run build
+
+            echo "🌐 Updating Nginx HTML files..."
+            sudo rm -rf /var/www/html/*
+            sudo cp -r dist/* /var/www/html/
 
             echo "✅ Deploy complete."
