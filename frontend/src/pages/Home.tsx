@@ -127,7 +127,7 @@ const confirmRent = async () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#497D74] mt-16 p-6">
+    <div className="min-h-screen bg-[#497D74] mt-14 p-6">
       <div className="container mx-auto">
         <header className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-4">
