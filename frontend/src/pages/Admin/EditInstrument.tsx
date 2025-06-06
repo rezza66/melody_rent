@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../redux/store";
 import { fetchInstruments, updateInstrument } from "../../redux/instrumentSlice";
 import { useParams, useNavigate } from "react-router-dom";
-import { BASE_URL } from "../../utils/config";
+import { IMAGE_BASE_URL } from "../../utils/config";
 import { fetchCategories, Category } from "../../api/categoryApi";
 
 interface InstrumentFormData {
@@ -82,7 +82,7 @@ const EditInstrument: React.FC = () => {
             : instrument.category?._id || ""
         });
         if (instrument.image) {
-          setImagePreview(`${BASE_URL}/${instrument.image}`);
+          setImagePreview(`${IMAGE_BASE_URL}/${instrument.image}`);
         }
       }
     }

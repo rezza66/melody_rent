@@ -4,7 +4,7 @@ import { AppDispatch, RootState } from "../../redux/store";
 import { fetchInstruments, deleteInstrument, } from "../../redux/instrumentSlice";
 import { Category, fetchCategories } from "../../api/categoryApi";
 import Sidebar from "../../components/Sidebar";
-import { BASE_URL } from "../../utils/config";
+import { IMAGE_BASE_URL } from "../../utils/config";
 import { useNavigate } from "react-router-dom";
 
 const InstrumentList: React.FC = () => {
@@ -95,7 +95,7 @@ const InstrumentList: React.FC = () => {
                 >
                   <div className="relative w-1/3">
                     <img
-                      src={`${BASE_URL}/${instrument.image}`}
+                      src={`${IMAGE_BASE_URL}/${instrument.image}`}
                       alt={instrument.name}
                       className="w-full h-48 object-cover rounded-l-lg"
                     />

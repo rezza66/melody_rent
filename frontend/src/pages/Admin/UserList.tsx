@@ -4,7 +4,7 @@ import { RootState, AppDispatch } from '../../redux/store';
 import { getAllUser } from '../../redux/userSlice';
 import Sidebar from '../../components/Sidebar';
 import { deleteUser } from '../../redux/userSlice';
-import { BASE_URL } from '../../utils/config';
+import { IMAGE_BASE_URL } from '../../utils/config';
 
 interface User {
   id?: string;
@@ -104,7 +104,7 @@ const UserList: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       {user.image ? (
                         <img 
-                          src={`${BASE_URL}/${user.image}`} 
+                          src={`${IMAGE_BASE_URL}/${user.image}`} 
                           alt={user.name} 
                           className="h-10 w-10 rounded-full object-cover"
                         />
