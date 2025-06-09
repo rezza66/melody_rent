@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../redux/store';
 import { login } from '../redux/authSlice';
 import { assets } from '../assets/assets';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 interface LoginCredentials {
   email: string;
@@ -100,7 +100,7 @@ const LoginPage: React.FC = () => {
 
           <div className="text-center mt-4">
             <p className="text-gray-600">
-              Belum punya akun? <a href="/register" className="text-blue-600 hover:underline">Daftar Sekarang</a>
+              Belum punya akun? <Link to="/register" className="text-blue-600 hover:underline">Daftar Sekarang</Link>
             </p>
           </div>
         </div>

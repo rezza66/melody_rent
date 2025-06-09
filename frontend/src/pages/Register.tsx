@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../redux/store";
 import { register } from "../redux/authSlice";
 import { assets } from "../assets/assets";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 // Type definition matching the Mongoose schema
 type UserRegistration = {
@@ -153,9 +153,7 @@ const RegisterPage: React.FC = () => {
           <div className="text-center mt-4">
             <p className="text-gray-600">
               Sudah punya akun?{" "}
-              <a href="/login" className="text-blue-600 hover:underline">
-                Masuk
-              </a>
+              <Link to="/login" className="text-blue-600 hover:underline">Masuk</Link>
             </p>
           </div>
         </div>

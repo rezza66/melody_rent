@@ -19,7 +19,7 @@ jobs:
           port: 2222
           script: |
             cd ~/apps/melody_rent
-
+            
             echo "🔁 Pulling latest code..."
             git reset --hard HEAD
             git clean -fd
@@ -37,8 +37,9 @@ jobs:
             npm install
             npm run build
 
-            echo "🌐 Updating Nginx HTML files..."
-            sudo rm -rf /var/www/html/*
-            sudo cp -r dist/* /var/www/html/
+            echo "🌐 Updating Frontend Files..."
+            sudo rm -rf /home/reza1/apps/melody_rent/frontend/dist/*
+            sudo cp -r dist/* /home/reza1/apps/melody_rent/frontend/dist/
+            sudo chown -R www-data:www-data /home/reza1/apps/melody_rent/frontend/dist
 
             echo "✅ Deploy complete."
