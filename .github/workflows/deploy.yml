@@ -38,8 +38,12 @@ jobs:
             npm run build
 
             echo "🌐 Updating Frontend Files..."
+            sudo rm -rf /home/reza1/apps/melody_rent/frontend-dist-temp
+            mkdir -p /home/reza1/apps/melody_rent/frontend-dist-temp
+            cp -r dist/* /home/reza1/apps/melody_rent/frontend-dist-temp/
+
             sudo rm -rf /home/reza1/apps/melody_rent/frontend/dist/*
-            sudo cp -r dist/* /home/reza1/apps/melody_rent/frontend/dist/
+            sudo cp -r /home/reza1/apps/melody_rent/frontend-dist-temp/* /home/reza1/apps/melody_rent/frontend/dist/
             sudo chown -R www-data:www-data /home/reza1/apps/melody_rent/frontend/dist
 
             echo "✅ Deploy complete."
