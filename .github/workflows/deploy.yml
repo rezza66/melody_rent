@@ -32,6 +32,10 @@ jobs:
             echo "🚀 Restarting backend with PM2..."
             pm2 restart melody-backend || pm2 start index.js --name melody-backend
 
+            echo "💻 Preparing frontend build permissions..."
+            cd ../frontend
+            sudo chown -R $USER:$USER ./dist
+
             echo "💻 Building frontend..."
             cd ../frontend
             npm install
