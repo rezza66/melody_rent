@@ -4,7 +4,7 @@ import { fetchInstruments } from "../redux/instrumentSlice";
 import { Category, fetchCategories } from "../api/categoryApi";
 import { RootState, AppDispatch } from "../redux/store";
 import { IMAGE_BASE_URL } from "../utils/config";
-import {format} from 'date-fns';
+import { format } from "date-fns";
 import { createLoan, fetchUserLoans, LoanRequest } from "../api/loanApi";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -38,79 +38,79 @@ const Homepage = () => {
     dispatch(fetchInstruments());
   }, [dispatch]);
 
-
-
   const handleRent = (instrumentId: string) => {
     setSelectedInstrumentId(instrumentId);
     setShowModal(true);
   };
 
-
-const confirmRent = async () => {
-  if (!user || !user.id) {
-    alert("User tidak ditemukan. Silakan login terlebih dahulu.");
-    return;
-  }
-
-  setIsLoading(true);
-
-  try {
-    const response = await fetchUserLoans(user.id);
-    
-    if (!response || !Array.isArray(response)) {
-      throw new Error("Data peminjaman tidak valid atau gagal diambil.");
-    }
-
-    const myLoans = response;
-    const activeLoans = myLoans.filter((loan: { status: string }) => loan.status === "ongoing").length;
-
-    if (activeLoans >= 2) {
-      alert("Kamu sudah mencapai batas peminjaman (maksimal 2 alat musik). Kembalikan alat terlebih dahulu.");
-      setIsLoading(false);
+  const confirmRent = async () => {
+    if (!user || !user.id) {
+      alert("User tidak ditemukan. Silakan login terlebih dahulu.");
       return;
     }
 
-    if (!startDate || !endDate) {
-      alert("Tanggal mulai dan selesai harus diisi.");
+    setIsLoading(true);
+
+    try {
+      const response = await fetchUserLoans(user.id);
+
+      if (!response || !Array.isArray(response)) {
+        throw new Error("Data peminjaman tidak valid atau gagal diambil.");
+      }
+
+      const myLoans = response;
+      const activeLoans = myLoans.filter(
+        (loan: { status: string }) => loan.status === "ongoing"
+      ).length;
+
+      if (activeLoans >= 2) {
+        alert(
+          "Kamu sudah mencapai batas peminjaman (maksimal 2 alat musik). Kembalikan alat terlebih dahulu."
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      if (!startDate || !endDate) {
+        alert("Tanggal mulai dan selesai harus diisi.");
+        setIsLoading(false);
+        return;
+      }
+      if (startDate >= endDate) {
+        alert("Tanggal mulai harus lebih awal dari tanggal selesai.");
+        setIsLoading(false);
+        return;
+      }
+
+      const loanData: LoanRequest = {
+        user: user.id,
+        instruments: [
+          {
+            instrumentId: selectedInstrumentId!,
+            quantity: 1,
+            startDate: format(startDate!, "yyyy-MM-dd"),
+            endDate: format(endDate!, "yyyy-MM-dd"),
+          },
+        ],
+      };
+
+      await createLoan(loanData);
+      alert("Peminjaman berhasil!");
+    } catch (error: any) {
+      if (error.response?.status === 400) {
+        alert(
+          "Peminjaman gagal! Pastikan kamu tidak melebihi batas peminjaman."
+        );
+      } else {
+        alert("Terjadi kesalahan. Silakan coba lagi.");
+      }
+    } finally {
       setIsLoading(false);
-      return;
+      setShowModal(false);
+      setStartDate(null);
+      setEndDate(null);
     }
-    if (startDate >= endDate) {
-      alert("Tanggal mulai harus lebih awal dari tanggal selesai.");
-      setIsLoading(false);
-      return;
-    }
-
-    const loanData: LoanRequest = {
-      user: user.id,
-      instruments: [
-        {
-          instrumentId: selectedInstrumentId!,
-          quantity: 1,
-          startDate: format(startDate!, "yyyy-MM-dd"),
-          endDate: format(endDate!, "yyyy-MM-dd"),
-        },
-      ],
-    };
-
-    await createLoan(loanData);
-    alert("Peminjaman berhasil!");
-
-  } catch (error: any) {
-
-    if (error.response?.status === 400) {
-      alert("Peminjaman gagal! Pastikan kamu tidak melebihi batas peminjaman.");
-    } else {
-      alert("Terjadi kesalahan. Silakan coba lagi.");
-    }
-
-  } finally {
-    setIsLoading(false);
-    setShowModal(false);
-    setStartDate(null);
-    setEndDate(null);
-  }
-};
+  };
 
   const filteredInstruments = instruments.filter((instrument) => {
     const matchesSearch = instrument.name
@@ -134,7 +134,8 @@ const confirmRent = async () => {
             Rental Alat Musik
           </h1>
           <p className="text-white">
-            Nikmati kemudahan sewa alat musik berkualitas dengan harga bersahabat
+            Nikmati kemudahan sewa alat musik berkualitas dengan harga
+            bersahabat
           </p>
         </header>
 
@@ -166,7 +167,7 @@ const confirmRent = async () => {
         ) : error ? (
           <p className="text-center text-red-600">Terjadi kesalahan: {error}</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-4 py-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-2 py-4">
             {filteredInstruments.map((instrument) => (
               <div
                 key={instrument._id}
@@ -176,7 +177,7 @@ const confirmRent = async () => {
                   <img
                     src={`${IMAGE_BASE_URL}/${instrument.image}`}
                     alt={instrument.name}
-                    className="w-full h-80 object-cover"
+                    className="w-full h-64 object-cover"
                   />
                   <span
                     className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium ${
@@ -190,19 +191,23 @@ const confirmRent = async () => {
                       : "Tidak Tersedia"}
                   </span>
                 </div>
-                <div className="p-6 flex-grow flex flex-col">
-                  <h2 className="text-2xl font-bold mb-3 text-gray-800">
+
+                <div className="p-4 flex-grow flex flex-col">
+                  <h2 className="text-xl font-bold mb-2 text-gray-800">
                     {instrument.name}
                   </h2>
-                  <p className="text-gray-600 mb-4 flex-grow text-sm leading-relaxed">
+
+                  <p className="text-gray-600 mb-3 flex-grow text-sm leading-relaxed">
                     {instrument.description}
                   </p>
-                  <div className="border-t border-gray-100 pt-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <span className="text-blue-700 font-bold text-xl">
+
+                  <div className="border-t border-gray-100 pt-3">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-blue-700 font-bold text-lg">
                         Rp {instrument.pricePerDay.toLocaleString()}/hari
                       </span>
                     </div>
+
                     <button
                       disabled={
                         !instrument.available ||
@@ -210,7 +215,7 @@ const confirmRent = async () => {
                         isLoading
                       }
                       onClick={() => handleRent(instrument._id)}
-                      className={`w-full py-3 rounded-lg font-medium transition duration-200 ${
+                      className={`w-full py-2.5 rounded-lg font-medium transition duration-200 ${
                         instrument.available && instrument.stock > 0
                           ? "bg-blue-600 text-white hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 focus:outline-none"
                           : "bg-gray-200 text-gray-400 cursor-not-allowed"
