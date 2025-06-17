@@ -1,4 +1,4 @@
-name: Deploy Melody Rent
+name: 🚀 Deploy Melody Rent
 
 on:
   push:
@@ -7,20 +7,23 @@ on:
 
 jobs:
   deploy:
+    name: 🔧 Deploy to VPS
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to VPS via SSH
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📡 Deploy via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 2222
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ~/apps/melody_rent
-            
             echo "🔁 Pulling latest code..."
+            cd ~/apps/melody_rent
             git reset --hard HEAD
             git clean -fd
             git pull origin master
@@ -32,16 +35,12 @@ jobs:
             echo "🚀 Restarting backend with PM2..."
             pm2 restart melody-backend || pm2 start index.js --name melody-backend
 
-            echo "💻 Preparing frontend build permissions..."
-            cd ../frontend
-            sudo chown -R $USER:$USER ./dist
-
             echo "💻 Building frontend..."
             cd ../frontend
             npm install
             npm run build
 
-            echo "🌐 Updating Frontend Files..."
+            echo "🔄 Updating frontend files..."
             sudo rm -rf /home/reza1/apps/melody_rent/frontend-dist-temp
             mkdir -p /home/reza1/apps/melody_rent/frontend-dist-temp
             cp -r dist/* /home/reza1/apps/melody_rent/frontend-dist-temp/
