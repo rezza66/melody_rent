@@ -50,3 +50,5 @@ jobs:
             sudo chown -R www-data:www-data /home/reza1/apps/melody_rent/frontend/dist
 
             echo "✅ Deploy complete."
+          timeout: 300s
+          command_timeout: 300s
