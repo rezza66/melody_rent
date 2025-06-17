@@ -33,7 +33,7 @@ jobs:
             npm install
 
             echo "🚀 Restarting backend with PM2..."
-            pm2 restart melody-backend || pm2 start index.js --name melody-backend
+            pm2 restart melody_backend || pm2 start index.js --name melody_backend
 
             echo "💻 Building frontend..."
             cd ../frontend
