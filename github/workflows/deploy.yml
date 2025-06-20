@@ -1,0 +1,37 @@
+name: Deploy Melody Rent
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) Akses server & jalankan semua perintah di sana
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host:     ${{ secrets.SERVER_HOST }}   
+          username: ${{ secrets.SERVER_USER }}   
+          key:      ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            # masuk ke folder proyek di VPS
+            cd ~/apps/melody_rent
+
+            # tarik kode terbaru
+            git pull origin main
+
+            # ===== FRONTEND =====
+            cd frontend
+            npm ci               # install deps
+            npm run build        # hasil: dist/
+
+            # ===== BACKEND =====
+            cd ../backend
+            npm ci --omit=dev    # hanya deps produksi
+            pm2 restart melody_backend || \
+              pm2 start index.js --name melody_backend
+
+            echo "✅ Deploy selesai"
