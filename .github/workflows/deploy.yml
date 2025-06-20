@@ -22,7 +22,7 @@ jobs:
             cd ~/apps/melody_rent
 
             # tarik kode terbaru
-            git pull origin main
+            git pull origin master
 
             # ===== FRONTEND =====
             cd frontend
