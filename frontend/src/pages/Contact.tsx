@@ -83,7 +83,7 @@ const ContactPage: React.FC = () => {
               <MapPin className="text-blue-600" size={30} />
               <div>
                 <h3 className="font-semibold">Alamat</h3>
-                <p className="text-gray-600">Jl. Musik Raya No. 123, Jayapura</p>
+                <p className="text-gray-600">Jl. Musik Raya No. 222, Jayapura</p>
               </div>
             </div>
 
