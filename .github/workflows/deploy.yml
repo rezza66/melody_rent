@@ -16,6 +16,7 @@ jobs:
           host:     ${{ secrets.VPS_HOST }}   
           username: ${{ secrets.VPS_USER }}   
           key:      ${{ secrets.SSH_PRIVATE_KEY }}
+          port:     2222
           script: |
             # masuk ke folder proyek di VPS
             cd ~/apps/melody_rent
