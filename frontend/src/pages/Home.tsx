@@ -44,7 +44,7 @@ const Homepage = () => {
   };
 
   const confirmRent = async () => {
-    if (!user || !user.id) {
+    if (!user || !user._id) {
       alert("User tidak ditemukan. Silakan login terlebih dahulu.");
       return;
     }
@@ -52,7 +52,7 @@ const Homepage = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetchUserLoans(user.id);
+      const response = await fetchUserLoans(user._id);
 
       if (!response || !Array.isArray(response)) {
         throw new Error("Data peminjaman tidak valid atau gagal diambil.");
@@ -83,7 +83,7 @@ const Homepage = () => {
       }
 
       const loanData: LoanRequest = {
-        user: user.id,
+        user: user._id,
         instruments: [
           {
             instrumentId: selectedInstrumentId!,
