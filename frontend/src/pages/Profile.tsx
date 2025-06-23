@@ -76,7 +76,7 @@ const ProfilePage: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    if (!user || !user.id) {
+    if (!user || !user._id) {
       alert("User tidak ditemukan. Silakan login ulang.");
       return;
     }
@@ -88,7 +88,7 @@ const ProfilePage: React.FC = () => {
       });
   
       // Dispatch Redux action dengan userId
-      await dispatch(updateUserProfile({ userId: user.id, formData: formDataToSend })).unwrap();
+      await dispatch(updateUserProfile({ userId: user._id, formData: formDataToSend })).unwrap();
       alert('Profil berhasil diperbarui');
     } catch (error: any) {
       alert(`Gagal memperbarui profil: ${error.message || "Terjadi kesalahan"}`);

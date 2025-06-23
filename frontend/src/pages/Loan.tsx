@@ -18,13 +18,13 @@ const LoanPage: React.FC = () => {
 
   useEffect(() => {
     const getLoans = async () => {
-      if (!user || !user.id) {
+      if (!user || !user._id) {
         setError("User tidak ditemukan.");
         return;
       }
       try {
         setLoading(true);
-        const data = await fetchUserLoans(user.id);
+        const data = await fetchUserLoans(user._id);
         console.log("Data loans dari API:", data);
         setLoans(data.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()));
         setError(null);
