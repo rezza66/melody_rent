@@ -4,7 +4,7 @@ import { BASE_URL } from "../utils/config";
 
 // Interface untuk user
 interface User {
-  id: string;
+  _id: string;
   name: string;
   email: string;
   phone: string;

@@ -36,14 +36,14 @@ export const registerUser = async (req, res, next) => {
 
     // Kembalikan respons berhasil
     res.status(201).json({
-      id: user.id,
+      _id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
       image: user.image,
       address: user.address,
       phone: user.phone,
-      token: generateToken(user.id),
+      token: generateToken(user._id),
     });
   } catch (error) {
     next(error);
@@ -81,7 +81,7 @@ export const loginUser = async (req, res) => {
       message: "Login berhasil",
       token: generateToken(user.id), // Token dibuat menggunakan fungsi generateToken
       user: {
-        id: user.id,
+        _id: user._id,
         name: user.name,
         email: user.email,
         address: user.address,

@@ -1,21 +1,33 @@
+// src/redux/userSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { RootState } from '../redux/store';
 import { BASE_URL } from '../utils/config';
 
+/* -------------------------------------------------------------------------- */
+/*                                Tipe Data                                   */
+/* -------------------------------------------------------------------------- */
+
+export interface User {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  image: string;
+  role?: string;
+}
+
 interface UserState {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
-    image: string;
-  } | null;
-  users: any[];
+  user: User | null;
+  users: User[];
   loading: boolean;
   error: string | null;
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                Initial State                               */
+/* -------------------------------------------------------------------------- */
 
 const initialState: UserState = {
   user: null,
@@ -24,78 +36,84 @@ const initialState: UserState = {
   error: null,
 };
 
-// ✅ Get currently logged-in user
-export const getUser = createAsyncThunk(
+/* -------------------------------------------------------------------------- */
+/*                               Async Thunks                                 */
+/* -------------------------------------------------------------------------- */
+
+/** 🔐 Ambil profil user yang sedang login */
+export const getUser = createAsyncThunk<User, void, { rejectValue: string }>(
   'user/getUser',
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${BASE_URL}/api/users/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const { data } = await axios.get<User>(`${BASE_URL}/api/users/me`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      return response.data;
+      return data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch user');
     }
   }
 );
 
-// ✅ Get all users
-export const getAllUser = createAsyncThunk(
+/** 👥 Ambil semua user */
+export const getAllUser = createAsyncThunk<User[], void, { rejectValue: string }>(
   'user/getAllUser',
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${BASE_URL}/api/users`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const { data } = await axios.get<User[]>(`${BASE_URL}/api/users`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      return response.data;
+      return data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch all users');
     }
   }
 );
 
-// ✅ Update user profile with ID
-export const updateUserProfile = createAsyncThunk(
+/** ✏️ Perbarui profil user */
+export const updateUserProfile = createAsyncThunk<
+  User,
+  { userId: string; formData: FormData },
+  { rejectValue: string }
+>(
   'user/updateProfile',
-  async ({ userId, formData }: { userId: string; formData: FormData }, { rejectWithValue }) => {
+  async ({ userId, formData }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(`${BASE_URL}/api/users/${userId}`, formData, {
+      const { data } = await axios.put<User>(`${BASE_URL}/api/users/${userId}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`,
         },
       });
-      return response.data;
+      return data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Update failed');
     }
   }
 );
 
-// ✅ Delete user by ID
-export const deleteUser = createAsyncThunk(
+/** 🗑️ Hapus user berdasarkan _id */
+export const deleteUser = createAsyncThunk<string, string, { rejectValue: string }>(
   'user/deleteUser',
-  async (userId: string, { rejectWithValue }) => {
+  async (userId, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${BASE_URL}/api/users/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      return userId;
+      return userId; // kembalikan _id untuk di-filter di reducer
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete user');
     }
   }
 );
+
+/* -------------------------------------------------------------------------- */
+/*                                  Slice                                     */
+/* -------------------------------------------------------------------------- */
 
 const userSlice = createSlice({
   name: 'user',
@@ -109,23 +127,23 @@ const userSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    /* --------------------------- getUser --------------------------- */
     builder
-      // Get logged-in user
       .addCase(getUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(getUser.fulfilled, (state, action) => {
         state.loading = false;
-        const userData = action.payload;
-        state.user = { ...userData, id: userData.id || userData._id };
+        state.user = action.payload; // sudah mengandung _id
       })
       .addCase(getUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      })
-      
-      // Get all users
+      });
+
+    /* -------------------------- getAllUser ------------------------- */
+    builder
       .addCase(getAllUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -137,31 +155,32 @@ const userSlice = createSlice({
       .addCase(getAllUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      })
+      });
 
-      // Update user profile
+    /* ---------------------- updateUserProfile ---------------------- */
+    builder
       .addCase(updateUserProfile.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(updateUserProfile.fulfilled, (state, action) => {
-        console.log("Updated user data:", action.payload);
         state.loading = false;
         state.user = action.payload;
       })
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      })
-      
-      // Delete user
+      });
+
+    /* -------------------------- deleteUser ------------------------- */
+    builder
       .addCase(deleteUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(deleteUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.users = state.users.filter(user => (user.id || user._id) !== action.payload);
+        state.users = state.users.filter((u) => u._id !== action.payload);
       })
       .addCase(deleteUser.rejected, (state, action) => {
         state.loading = false;
@@ -170,8 +189,15 @@ const userSlice = createSlice({
   },
 });
 
+/* -------------------------------------------------------------------------- */
+/*                                Selectors                                   */
+/* -------------------------------------------------------------------------- */
+
 export const { setUser, logoutUser } = userSlice.actions;
+
 export const selectUser = (state: RootState) => state.user.user;
+export const selectUsers = (state: RootState) => state.user.users;
 export const selectUserLoading = (state: RootState) => state.user.loading;
 export const selectUserError = (state: RootState) => state.user.error;
+
 export default userSlice.reducer;
